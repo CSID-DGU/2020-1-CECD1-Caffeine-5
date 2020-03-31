@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+## Welcome to ++Caffeine's repository
 
 You can use the [editor on GitHub](https://github.com/CSID-DGU/2020-1-CECD1-Caffeine-5/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
 
