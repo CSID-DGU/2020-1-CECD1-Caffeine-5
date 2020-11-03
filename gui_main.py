@@ -109,7 +109,7 @@ class Window(QDialog):
         self.setUpBoundaryBoxControls()
 
         # set the layout
-        self.graphTabs = QTabWidget();
+        self.graphTabs = QTabWidget()
         self.graphTabs.addTab(self.pcplot, '3D Visualizer')
         self.graphTabs.currentChanged.connect(self.whoVisible)
 
