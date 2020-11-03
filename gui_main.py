@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
         QDialog, QGridLayout, QGroupBox, QLabel, QLineEdit,
         QPushButton, QTableWidget, QTableWidgetItem, 
         QTabWidget, QVBoxLayout, QButtonGroup)
+from PyQt5.QtGui import QPixmap
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
@@ -68,6 +69,9 @@ class Window(QDialog):
         )
         self.setWindowTitle("안전하차시스템 GUI")
 
+        self.width=size.width()
+        self.height=size.height()
+
         self.frameTime = 50
         self.graphFin = 1
         self.hGraphFin = 1
@@ -102,11 +106,13 @@ class Window(QDialog):
         self.colorGradient()
 
         #add connect options
+        
         self.setConnectionLayout()
         self.setStatsLayout()
         self.setPlotControlLayout()
         self.setConfigLayout()
         self.setUpBoundaryBoxControls()
+        self.setTrafficLightLayout()
 
         # set the layout
         self.graphTabs = QTabWidget()
@@ -119,7 +125,8 @@ class Window(QDialog):
         gridlay.addWidget(self.configBox,       2, 0, 1, 1)
         gridlay.addWidget(self.plotControlBox,  3, 0, 1, 1)
         gridlay.addWidget(self.boxTab,          4, 0, 1, 1)
-        gridlay.addWidget(self.graphTabs,       0, 1, 5, 1)
+        gridlay.addWidget(self.trafficBox,      5, 0, 1, 1)
+        gridlay.addWidget(self.graphTabs,       0, 1, 6, 1)
         gridlay.setColumnStretch(0, 1)
         gridlay.setColumnStretch(1, 3)
         self.setLayout(gridlay)
@@ -127,6 +134,19 @@ class Window(QDialog):
         self.selectCfg()
 
 # left side pane layout
+    def setTrafficLightLayout(self):
+        self.trafficBox = QGroupBox('')
+        self.lbl=QLabel(self)
+
+        self.pixmapRed=QPixmap("light_red").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapGreen=QPixmap("light_green").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapYellow=QPixmap("light_yellow").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapGroup=[self.pixmapRed,self.pixmapYellow,self.pixmapGreen]
+        self.lbl.setPixmap(self.pixmapGroup[2])
+
+        self.trafficControlLayout = QGridLayout()
+        self.trafficControlLayout.addWidget(self.lbl,0,0)
+        self.trafficBox.setLayout(self.trafficControlLayout)
 
     def setConnectionLayout(self):
         self.comBox = QGroupBox('Connect to Com Ports')
@@ -349,8 +369,8 @@ class Window(QDialog):
             colors = np.zeros((42,4))
             for c in range(0,7):
                 colors[c*6:c*6+6,:] = pg.glColor(colorArray[c%5])
-            sphereTrigs = getSphereMesh()
-            self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=True,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
+            #sphereTrigs = getSphereMesh()
+            #self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=True,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
             self.pcplot.addItem(self.sphere)
         # create the background grids
         self.gz = gl.GLGridItem()
@@ -378,7 +398,7 @@ class Window(QDialog):
         verts[1,0,:] = [-verX, 0, verZ]
         verts[1,1,:] = [verX, 0, verZ]
         verts[1,2,:] = [verX, 0, -verZ]
-        self.evmBox = gl.GLMeshItem(vertexes=verts,smooth=True,drawEdges=True,edgeColor=pg.glColor('r'),drawFaces=False)
+        self.evmBox = gl.GLMeshItem(vertexes=verts,smooth=False,drawEdges=True,edgeColor=pg.glColor('r'),drawFaces=False)
         self.pcplot.addItem(self.evmBox)
         #add text items for tracks
         self.coordStr = []
