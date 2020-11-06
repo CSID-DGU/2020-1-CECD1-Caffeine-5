@@ -45,6 +45,11 @@ class Window(QDialog):
         print('Python is ', struct.calcsize("P")*8, ' bit')
         print('Python version: ', sys.version_info)
 
+        self.width=size.width()
+        self.height=size.height()
+
+        self.trafficVal=0   #신호등 gui 바꾸기 위한 변수
+
         self.frameTime = 50
         self.graphFin = 1
         self.hGraphFin = 1
@@ -106,41 +111,50 @@ class Window(QDialog):
         #self.plot2DQTGraph()
 
         #add connect options
+        
         self.setConnectionLayout()
         self.setStatsLayout()
         self.setPlotControlLayout()
         self.setConfigLayout()
         #self.setControlLayout()
         self.setUpBoundaryBoxControls()
-        #self.setSensorPositionControls()
+        self.setTrafficLightLayout()
 
         # set the layout
-        #create tab for different graphing options
         self.graphTabs = QTabWidget()
-        self.graphTabs.addTab(self.pcplot, '3D Plot')
-        #self.graphTabs.addTab(self.legacyPlot, '2D Plot')
+        self.graphTabs.addTab(self.pcplot, '3D Visualizer')
         self.graphTabs.currentChanged.connect(self.whoVisible)
 
         gridlay = QGridLayout()
-        gridlay.addWidget(self.comBox, 0,0,1,1)
-        gridlay.addWidget(self.statBox, 1,0,1,1)
-        gridlay.addWidget(self.configBox,2,0,1,1)
-        gridlay.addWidget(self.plotControlBox,3,0,1,1)
-        gridlay.addWidget(self.boxTab,4,0,1,1)
-        #gridlay.addWidget(self.spBox,5,0,1,1)
-        gridlay.addWidget(self.graphTabs,0,1,6,1)
-        #gridlay.addWidget(self.gw, 0, 2, 6, 1)
-        #gridlay.addWidget(self.demoData, 0,3,1,2)
-        #gridlay.addWidget(self.hPlot,1,3,4,2)
-        gridlay.setColumnStretch(0,1)
-        gridlay.setColumnStretch(1,3)
+        gridlay.addWidget(self.comBox,          0, 0, 1, 1)
+        gridlay.addWidget(self.statBox,         1, 0, 1, 1)
+        gridlay.addWidget(self.configBox,       2, 0, 1, 1)
+        gridlay.addWidget(self.plotControlBox,  3, 0, 1, 1)
+        gridlay.addWidget(self.boxTab,          4, 0, 1, 1)
+        gridlay.addWidget(self.trafficBox,      5, 0, 1, 1)
+        gridlay.addWidget(self.graphTabs,       0, 1, 6, 1)
+        gridlay.setColumnStretch(0, 1)
+        gridlay.setColumnStretch(1, 3)
         self.setLayout(gridlay)
 
         #configFile
         self.selectCfg()
 #
 # left side pane layout
-#
+    def setTrafficLightLayout(self):
+        self.trafficBox = QGroupBox('')
+        self.lbl=QLabel(self)
+
+        self.pixmapRed=QPixmap("light_red").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapGreen=QPixmap("light_green").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapYellow=QPixmap("light_yellow").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapGroup=[self.pixmapRed,self.pixmapYellow,self.pixmapGreen]
+        self.lbl.setPixmap(self.pixmapGroup[2])
+
+        self.trafficControlLayout = QGridLayout()
+        self.trafficControlLayout.addWidget(self.lbl,0,0)
+        self.trafficBox.setLayout(self.trafficControlLayout)
+
     def setConnectionLayout(self):
         self.comBox = QGroupBox('Connect to Com Ports')
         self.uartCom = QLabel("10")    #deb_gp
@@ -435,8 +449,8 @@ class Window(QDialog):
             colors = np.zeros((42,4))
             for c in range(0,7):
                 colors[c*6:c*6+6,:] = pg.glColor(colorArray[c%5])
-            sphereTrigs = getSphereMesh()
-            self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=False,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
+            #sphereTrigs = getSphereMesh()
+            #self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=True,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
             self.pcplot.addItem(self.sphere)
         # create the background grids
         self.gz = gl.GLGridItem()
@@ -600,18 +614,16 @@ class Window(QDialog):
         self.frameNumDisplay.setText(fnstr)
         self.plotTimeDisplay.setText(pltstr)
 
-    def resetFallText(self):
-        self.fallAlert.setText('Standing')
-        self.fallPic.setPixmap(self.standingPicture)
-        self.fallResetTimerOn = 0
+        if(self.trafficVal==0):
+            self.lbl.setPixmap(self.pixmapGroup[0])
+        elif(self.trafficVal==1):
+            self.lbl.setPixmap(self.pixmapGroup[1])
+        else:
+            self.lbl.setPixmap(self.pixmapGroup[2])
+        self.trafficVal+=1
+        if(self.trafficVal==3):
+            self.trafficVal=0
 
-    def updateFallThresh(self):
-        try:
-            newThresh = float(self.fallThreshInput.text())
-            self.fallThresh = newThresh
-            self.fallThreshMarker.setPos(self.fallThresh)
-        except:
-            print('No numberical threshold')
 
     def connectCom(self):
         #get parser
