@@ -72,8 +72,7 @@ class Window(QDialog):
         self.width=size.width()
         self.height=size.height()
 
-        #for test
-        self.testVal=0
+        self.trafficVal=0   #신호등 gui 바꾸기 위한 변수
 
         self.frameTime = 50
         self.graphFin = 1
@@ -489,17 +488,16 @@ class Window(QDialog):
         fnstr = 'Frame: '+str(self.frameNum)
         self.frameNumDisplay.setText(fnstr)
         self.plotTimeDisplay.setText(pltstr)
-        """
-        if(self.testVal==0):
+
+        if(self.trafficVal==0):
             self.lbl.setPixmap(self.pixmapGroup[0])
-        elif(self.testVal==1):
+        elif(self.trafficVal==1):
             self.lbl.setPixmap(self.pixmapGroup[1])
         else:
             self.lbl.setPixmap(self.pixmapGroup[2])
-        self.testVal+=1
-        if(self.testVal==3):
-            self.testVal=0
-        """
+        self.trafficVal+=1
+        if(self.trafficVal==3):
+            self.trafficVal=0
 
 
     def connectCom(self):
