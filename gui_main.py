@@ -68,7 +68,7 @@ class Window(QDialog):
         #timer to reset fall detected message
         self.fallTimer = QTimer()
         self.fallTimer.setSingleShot(True)
-        self.fallTimer.timeout.connect(self.resetFallText)
+        #self.fallTimer.timeout.connect(self.resetFallText)
         self.fallResetTimerOn = 0
         self.fallThresh = -0.22
         #color gradients
