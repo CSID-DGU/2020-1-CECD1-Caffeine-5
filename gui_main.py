@@ -72,6 +72,9 @@ class Window(QDialog):
         self.width=size.width()
         self.height=size.height()
 
+        #for test
+        self.testVal=0
+
         self.frameTime = 50
         self.graphFin = 1
         self.hGraphFin = 1
@@ -486,6 +489,18 @@ class Window(QDialog):
         fnstr = 'Frame: '+str(self.frameNum)
         self.frameNumDisplay.setText(fnstr)
         self.plotTimeDisplay.setText(pltstr)
+        """
+        if(self.testVal==0):
+            self.lbl.setPixmap(self.pixmapGroup[0])
+        elif(self.testVal==1):
+            self.lbl.setPixmap(self.pixmapGroup[1])
+        else:
+            self.lbl.setPixmap(self.pixmapGroup[2])
+        self.testVal+=1
+        if(self.testVal==3):
+            self.testVal=0
+        """
+
 
     def connectCom(self):
         self.parser = uartParserSDK(type='(Legacy) 2D People Counting')
