@@ -1,7 +1,61 @@
+
 #functions for creating ellipsoids to represent tracks
+import math, time
 import numpy as np
 
 #helper funtions
+def getSphereVertexes(xRadius=0.75, yRadius=0.75, zRadius=1.5,xc=0,yc=0,zc=0,stacks=6,sectors=6):
+    stackStep = math.pi/stacks
+    sectorStep = 2*math.pi/sectors
+    verts = np.empty((3, (stacks+1)*sectors))
+    for i in range(0,stacks+1):
+        stackAngle = math.pi/2 - i*stackStep
+        xr = xRadius*math.cos(stackAngle)
+        yr = yRadius*math.cos(stackAngle)
+        z = zRadius*math.sin(stackAngle) + zc
+        for j in range(0,sectors):
+            sectorAngle = j*sectorStep
+            #vertex position
+            x = xr*math.cos(sectorAngle) + xc
+            y = yr*math.sin(sectorAngle) + yc
+            verts[0,i*stacks+j] = x
+            verts[1,i*stacks+j] = y
+            verts[2,i*stacks+j] = z
+    return verts
+
+def getSphereTriangles(verts, stacks=6, sectors=6):
+    trigVerts = np.empty((((stacks)*sectors*2),3,3))
+    ind = 0
+    for i in range(0,stacks):
+        k1 = i*sectors
+        k2 = k1 + sectors
+        for j in range(0,sectors):
+            k1v = k1+j
+            k1v2 = k1+((j+1)%sectors)
+            k2v = k2+j
+            k2v2 = k2+((j+1)%sectors)
+            if (i!=0):
+                trigVerts[ind,0,:] = verts[:,k1v]
+                trigVerts[ind,1,:] = verts[:,k2v]
+                trigVerts[ind,2,:] = verts[:,k1v2]
+                ind += 1
+            if(i!=stacks-1):
+                trigVerts[ind,0,:] = verts[:,k1v2]
+                trigVerts[ind,1,:] = verts[:,k2v]
+                trigVerts[ind,2,:] = verts[:,k2v2]
+                ind += 1
+    return trigVerts
+
+def getSphereMesh(xRadius=0.75, yRadius=0.75, zRadius=0.75,xc=0,yc=0,zc=0,stacks=6,sectors=6,bench=0):
+    if (bench):
+        startTime = int(round(time.time()*1000))
+    verts = getSphereVertexes(xRadius=xRadius,yRadius=yRadius,zRadius=zRadius,xc=xc,yc=yc,zc=zc,stacks=stacks,sectors=sectors)
+    if(bench):
+        endTime = int(round(time.time()*1000))
+        timeSpent = endTime - startTime
+        print('Sphere Mesh Bench: ', timeSpent,' ms')
+    return getSphereTriangles(verts=verts, stacks=stacks, sectors=sectors)
+
 def getBoxVertices(xl,yl,zl,xr,yr,zr):
     verts = np.zeros((8,3))
     verts[0,:] = [xl,yl,zl]
@@ -16,6 +70,8 @@ def getBoxVertices(xl,yl,zl,xr,yr,zr):
 
 def getBoxLinesFromVerts(verts):
     lines = np.zeros((24,3))
+    #outer loop gets the key vertexes
+    #keyVerts = [0,3,5,6]
     #v0
     lines[0]= verts[0]
     lines[1]= verts[1]
@@ -68,3 +124,10 @@ def getSquareLines(xl,yL,xr,yr,z):
     verts[3,:] = [xl,yr,z]
     verts[4,:] = [xl,yL,z]
     return verts
+
+#def getSquare(verts):
+#    lines = np.zeros((4,3))
+#    lines[0]= verts[0]
+#    lines[1]= verts[1]
+#    lines[2]= verts[0]
+#    lines[3]= verts[2]
