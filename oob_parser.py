@@ -5,6 +5,7 @@ import binascii
 import time
 import numpy as np
 import math
+import heapq
 
 
 #Initialize this Class to create a UART Parser. Initialization takes one argument:
@@ -71,7 +72,6 @@ class uartParserSDK():
         self.plotDimension = 0
         self.getUnique = 0
         self.CaponEC = 0
-        self.dangerNum = 0 
         self.targetEttc = []
         self.targetID = []
         self.dangerNum = 0
@@ -204,8 +204,8 @@ class uartParserSDK():
             targetStruct = 'I6f9ff'
         targetSize = struct.calcsize(targetStruct)
         self.numDetectedTarget = int(tlvLength/targetSize)
-        #print("##targetSize: " + targetSize + ", numDetectedTarget: " + self.numDetectedTarget+"\n")
         targets = np.empty((13,self.numDetectedTarget))
+        self.heap = []
         for i in range(self.numDetectedTarget):
             targetData = struct.unpack(targetStruct,data[:targetSize])
             targets[0,i]=int(targetData[0])
@@ -215,13 +215,6 @@ class uartParserSDK():
             targets[6,i]=0
             targets[7:9,i]=targetData[5:7]
             targets[9,i]=0
-            print("--------Target List---------")
-            print("# of Detected Target: \t", self.numDetectedTarget)
-            print("Target ID: \t", int(targets[0,i]))
-            print("좌표 [X, Y]: \t\t[", round(targets[1, i], 2), ',', round(targets[2, i], 2),']')
-            print("상대속도 [X, Y]: \t[", round(targets[4, i], 2), ',',  round(targets[5, i], 2),']')
-            print("절대속도: \t\t", round(math.sqrt(pow(targets[4, i], 2) + pow(targets[5, i], 2)), 2),'m/s')
-            print("상대가속도 [X, Y]: \t[", round(targets[7, i], 2), ',',  round(targets[8, i], 2),']')
             if (self.plotDimension):
                 targets[10:12,i]=targetData[7:9]
                 targets[12,i]=1
@@ -229,26 +222,40 @@ class uartParserSDK():
                 targets[10:12,i]=[0.75,0.75]
                 targets[12,i]=1
             data = data[targetSize:]
+            #print("--------Target List---------")
+            #print("# of Detected Target: \t", self.numDetectedTarget)
+            #print("Target ID: \t", int(targets[0,i]))
+            #print("좌표 [X, Y]: \t\t[", round(targets[1, i], 2), ',', round(targets[2, i], 2),']')
+            #print("상대속도 [X, Y]: \t[", round(targets[4, i], 2), ',',  round(targets[5, i], 2),']')
+            #print("절대속도: \t\t", round(math.sqrt(pow(targets[4, i], 2) + pow(targets[5, i], 2)), 2),'m/s')
+            #print("상대가속도 [X, Y]: \t[", round(targets[7, i], 2), ',',  round(targets[8, i], 2),']')
             distance = round(math.sqrt(pow(targets[1, i], 2) + pow(targets[2, i], 2)), 2)
             velocity = round(math.sqrt(pow(targets[4, i], 2) + pow(targets[5, i], 2)), 2)
             acc = round(math.sqrt(pow(targets[7, i], 2) + pow(targets[8, i], 2)), 2)
             ettc = round((velocity-math.sqrt((velocity*velocity)-2*(-acc)*distance)) / -(acc),2) 
-            print(distance, velocity, acc, ettc )
-            self.ettctoTrafficNum(ettc)
-        self.targetBufPing = targets
+            #print(distance, velocity, acc, ettc )
+            self.ettctoTrafficNum(ettc)    
+            heapq.heappush(self.heap,self.dangerNum)
         
+      #  print(self.heap)
+            
+        if (self.heap):
+            self.dangerNum = heapq.heappop(self.heap)
+    #    print(self.dangerNum)
+        self.targetBufPing = targets  
+
 
     def ettctoTrafficNum(self, ettc):
         # 0: CZ(RED) 1: DZ(YELLOW) 2:NZ(GREEN)
-        print('ECCT:')
-        if(ettc<=1.0):
+        #print('ECCT:')
+        if(ettc<=3.0):
              self.dangerNum=0
         elif(ettc>3.0 and ettc<=4.0):
              self.dangerNum=1
         else:
             self.dangerNum=2
         
-        print(self.dangerNum)
+        #print(self.dangerNum)            
 
     #decode 3D People Counting Target List TLV
     def parseDetectedTracks3D(self, data, tlvLength):
@@ -441,10 +448,10 @@ class uartParserSDK():
                     self.parseClassifierOutput(data[:tlvLength-8])
                 data = data[tlvLength-8:]
             except:
-                print('Not enough data')
-                print('Data length: ', len(data))
-                print('Reported Packet Length: ', packetLength)
-                self.fail=0
+                #print('Not enough data')
+                #print('Data length: ', len(data))
+                #print('Reported Packet Length: ', packetLength)
+                self.fail=1
                 return data
         return data
 

@@ -1,4 +1,3 @@
-
 #functions for creating ellipsoids to represent tracks
 import math, time
 import numpy as np

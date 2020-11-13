@@ -38,6 +38,52 @@ class sendCommandThread(QThread):
             self.done.emit()
 
 
+
+class update2DQTGraphThread(QThread):
+        done = pyqtSignal()
+
+        def __init__(self, pointCloud, targets, numTargets, indexes, numPoints, trailData, activeTrails, trailPlots, plot2D, gatingPlot):
+                QThread.__init__(self)
+                self.plot2D = plot2D
+                self.gatingPlot = gatingPlot
+                self.pointCloud=pointCloud
+                self.numTargets=numTargets
+                self.indexes=indexes
+                self.numPoints = numPoints
+                self.targets = targets
+                self.trailData = trailData
+                self.activeTrails = activeTrails
+                self.trailPlots = trailPlots
+                self.colorArray = ('r','g','b','w')
+
+        def run(self):
+                #plot point Cloud
+                print('updating 2d points')
+                toPlot = [{'pos':self.pointCloud[:,i]} for i in range(np.shape(self.pointCloud)[1])]
+                self.plot2D.setData(toPlot)
+                #plot trails
+                for i in range(20):
+                    lifespan = int(self.activeTrails[i,0])
+                    if (lifespan > 0):
+                        #plot trail
+                        if (lifespan > 100):
+                        	lifespan = 100
+                        trDat = self.trailData[i,:lifespan,0:2]
+                        #print(np.shape(trDat))
+                        self.trailPlots[i].setData(trDat[:,0], trDat[:,1], pen=pg.mkPen(width=3,color=self.colorArray[i%3]))
+                        self.trailPlots[i].setVisible(True)
+                    else:
+                        self.trailPlots[i].hide()
+
+                #plot tracks
+                if (self.numTargets > 0):
+                    trackPlot = [{'pos':self.targets[1:3,i],'pen':pg.mkPen(width=25,color=self.colorArray[i%3])} for i in range(self.numTargets)]
+                    self.gatingPlot.clear()
+                    self.gatingPlot.setData(trackPlot)
+                else:
+                    self.gatingPlot.clear()
+                self.done.emit()
+
 class updateQTTargetThread3D(QThread):
     done = pyqtSignal()
 
@@ -84,7 +130,6 @@ class updateQTTargetThread3D(QThread):
             if(decision != 1):
                 edge_color = pg.glColor('w')
         mesh = getBoxLinesCoords(x,y,z)
-        #print(x)
         track.setData(pos=mesh,color=edge_color,width=2,antialias=True,mode='lines')
         track.setVisible(True)
         #add text coordinates
@@ -93,7 +138,6 @@ class updateQTTargetThread3D(QThread):
         ctext.setVisible(True)
 
     def run(self):
-        #print('updating 3d points')
         #sanity check indexes = points
         if (len(self.indexes) != np.shape(self.pointCloud)[1]) and (len(self.indexes)):
             print ('I: ',len(self.indexes), ' P: ',  np.shape(self.pointCloud)[1])
@@ -121,7 +165,6 @@ class updateQTTargetThread3D(QThread):
         #    self.pointCloud=np.delete(self.pointCloud, to_delete, 1)
         #graph the points with colors
         toPlot = self.pointCloud[0:3,:].transpose()
-        #print(toPlot)
         size = np.log2(self.pointCloud[4,:].transpose())
         colors = np.zeros((np.shape(self.pointCloud)[1], 4))
         if (self.colorByIndex):

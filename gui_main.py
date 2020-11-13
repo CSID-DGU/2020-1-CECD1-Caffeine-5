@@ -68,7 +68,7 @@ class Window(QDialog):
         #timer to reset fall detected message
         self.fallTimer = QTimer()
         self.fallTimer.setSingleShot(True)
-        #self.fallTimer.timeout.connect(self.resetFallText)
+        self.fallTimer.timeout.connect(self.resetFallText)
         self.fallResetTimerOn = 0
         self.fallThresh = -0.22
         #color gradients
@@ -111,36 +111,43 @@ class Window(QDialog):
         #self.plot2DQTGraph()
 
         #add connect options
-        
         self.setConnectionLayout()
         self.setStatsLayout()
         self.setPlotControlLayout()
         self.setConfigLayout()
         #self.setControlLayout()
         self.setUpBoundaryBoxControls()
+        self.setSensorPositionControls()
         self.setTrafficLightLayout()
 
         # set the layout
+        #create tab for different graphing options
         self.graphTabs = QTabWidget()
-        self.graphTabs.addTab(self.pcplot, '3D Visualizer')
+        self.graphTabs.addTab(self.pcplot, '3D Plot')
+        #self.graphTabs.addTab(self.legacyPlot, '2D Plot')
         self.graphTabs.currentChanged.connect(self.whoVisible)
 
         gridlay = QGridLayout()
-        gridlay.addWidget(self.comBox,          0, 0, 1, 1)
-        gridlay.addWidget(self.statBox,         1, 0, 1, 1)
-        gridlay.addWidget(self.configBox,       2, 0, 1, 1)
-        gridlay.addWidget(self.plotControlBox,  3, 0, 1, 1)
-        gridlay.addWidget(self.boxTab,          4, 0, 1, 1)
-        gridlay.addWidget(self.trafficBox,      5, 0, 1, 1)
-        gridlay.addWidget(self.graphTabs,       0, 1, 6, 1)
-        gridlay.setColumnStretch(0, 1)
-        gridlay.setColumnStretch(1, 3)
+        gridlay.addWidget(self.comBox, 0,0,1,1)
+        gridlay.addWidget(self.statBox, 1,0,1,1)
+        gridlay.addWidget(self.configBox,2,0,1,1)
+        gridlay.addWidget(self.plotControlBox,3,0,1,1)
+        gridlay.addWidget(self.boxTab,4,0,1,1)
+        #gridlay.addWidget(self.spBox,5,0,1,1)
+        gridlay.addWidget(self.trafficBox,5, 0, 1, 1)
+        gridlay.addWidget(self.graphTabs,0,1,6,1)
+        #gridlay.addWidget(self.gw, 0, 2, 6, 1)
+        #gridlay.addWidget(self.demoData, 0,3,1,2)
+        #gridlay.addWidget(self.hPlot,1,3,4,2)
+        gridlay.setColumnStretch(0,1)
+        gridlay.setColumnStretch(1,3)
         self.setLayout(gridlay)
 
-        #configFile
         self.selectCfg()
 #
 # left side pane layout
+#
+
     def setTrafficLightLayout(self):
         self.trafficBox = QGroupBox('')
         self.lbl=QLabel(self)
@@ -148,8 +155,9 @@ class Window(QDialog):
         self.pixmapRed=QPixmap("light_red").scaled((int)(self.width/4),(int)(self.height/5))
         self.pixmapGreen=QPixmap("light_green").scaled((int)(self.width/4),(int)(self.height/5))
         self.pixmapYellow=QPixmap("light_yellow").scaled((int)(self.width/4),(int)(self.height/5))
-        self.pixmapGroup=[self.pixmapRed,self.pixmapYellow,self.pixmapGreen]
-        self.lbl.setPixmap(self.pixmapGroup[2])
+        self.pixmapCommon=QPixmap("light").scaled((int)(self.width/4),(int)(self.height/5))
+        self.pixmapGroup=[self.pixmapRed,self.pixmapYellow,self.pixmapGreen,self.pixmapCommon]
+        self.lbl.setPixmap(self.pixmapGroup[3])
 
         self.trafficControlLayout = QGridLayout()
         self.trafficControlLayout.addWidget(self.lbl,0,0)
@@ -165,9 +173,9 @@ class Window(QDialog):
         self.connectButton = QPushButton('Connect')
         self.connectButton.clicked.connect(self.connectCom)
         self.configLabel = QLabel('Config Type:')
-        #self.configType = QComboBox()
-        #self.configType.addItems(["(Legacy) 2D People Counting"])
-        self.configType=QLabel("2D People Counting")
+        self.configType = QComboBox()
+        self.configType.addItems(["(Legacy) 2D People Counting"])
+        #self.configType.addItems(["3D People Counting", "SDK Out of Box Demo", "Long Range People Detection", "Sense and Detect HVAC Control", "(Legacy) 2D People Counting", "(Legacy): Overhead People Counting", "Capon3DAOP", "Replay"])
         self.comLayout = QGridLayout()
         self.comLayout.addWidget(self.uartLabel,0,0)
         self.comLayout.addWidget(self.uartCom,0,1)
@@ -196,26 +204,26 @@ class Window(QDialog):
         self.plotControlBox = QGroupBox('Plot Controls')
         self.staticclutter = QCheckBox('Display Static Points')
         self.plotByIndex = QCheckBox('Plot Point Color by Index')
-        #self.plotByHeight = QCheckBox('Plot Point Color By Height')
+        self.plotByHeight = QCheckBox('Plot Point Color By Height')
         self.plotTracks = QCheckBox('Plot Tracks')
         self.pointColorGroup = QButtonGroup()
         self.pointColorGroup.addButton(self.plotByIndex)
-        #self.pointColorGroup.addButton(self.plotByHeight)
+        self.pointColorGroup.addButton(self.plotByHeight)
         self.pointColorGroup.setExclusive(True)
         self.persistentFramesInput = QComboBox()
         self.persistentFramesInput.addItems(['1','2','3','4','5','6','7','8','9','10'])
         self.persistentFramesInput.setCurrentIndex(2)
         self.pFILabel = QLabel('# of Persistent Frames')
-        #self.orientationSelection = QComboBox()
-        #self.orientationSelection.addItems(['Side Mount', 'Overhead Mount'])
-        #self.orientationSelection.currentIndexChanged.connect(self.swapOrientations)
-        #self.oriLabel = QLabel('Orientation')
+        self.orientationSelection = QComboBox()
+        self.orientationSelection.addItems(['Side Mount', 'Overhead Mount'])
+        self.orientationSelection.currentIndexChanged.connect(self.swapOrientations)
+        self.oriLabel = QLabel('Orientation')
         #self.fallThreshInput = QLineEdit(str(self.fallThresh))
         #self.fallThreshInput.textEdited.connect(self.updateFallThresh)
         #self.fallTLabel = QLabel('Fall Detection Threshold')
         self.plotControlLayout = QGridLayout()
-        #self.plotControlLayout.addWidget(self.plotByIndex, 0, 0,1,1)
-        #self.plotControlLayout.addWidget(self.plotByHeight, 1, 0,1,1)
+        self.plotControlLayout.addWidget(self.plotByIndex, 0, 0,1,1)
+        self.plotControlLayout.addWidget(self.plotByHeight, 1, 0,1,1)
         self.plotControlLayout.addWidget(self.plotTracks, 2, 0,1,1)
         self.plotControlLayout.addWidget(self.persistentFramesInput,4,0,1,1)
         self.plotControlLayout.addWidget(self.pFILabel,4,1,1,1)
@@ -226,8 +234,8 @@ class Window(QDialog):
         #self.plotControlLayout.addWidget(self.fallTLabel,4,1,1,1)
         self.plotControlBox.setLayout(self.plotControlLayout)
         #initialize button values
-        #self.plotByHeight.setChecked(True)
-        self.plotByIndex.setChecked(True)
+        self.plotByHeight.setChecked(True)
+        self.plotByIndex.setChecked(False)
         self.plotTracks.setChecked(True)
 
 
@@ -284,12 +292,12 @@ class Window(QDialog):
         #set up one boundary box control
         boxControl = QGroupBox(name)
         #input boxes
-        lx = QLineEdit('-10')
-        rx = QLineEdit('10')
+        lx = QLineEdit('-6')
+        rx = QLineEdit('6')
         ny = QLineEdit('0')
-        fy = QLineEdit('50')
-        bz = QLineEdit('-3')
-        tz = QLineEdit('3')
+        fy = QLineEdit('6')
+        bz = QLineEdit('-6')
+        tz = QLineEdit('6')
         enable = QCheckBox()
         #labels
         lxL = QLabel('Left X')
@@ -321,13 +329,53 @@ class Window(QDialog):
         enable.stateChanged.connect(self.changeBoundaryBox)
         return {'boxCon':boxControl, 'boundList':boundList, 'checkEnable':enable, 'boxNum':-1}
 
+    def setSensorPositionControls(self):
+        self.az_tilt = QLineEdit('0')
+        self.az_tiltL = QLabel('Azimuth Tilt')
+        self.elev_tilt = QLineEdit('0')
+        self.elev_tiltL = QLabel('Elevation Tilt')
+        self.s_height = QLineEdit(str(self.profile['sensorHeight']))
+        self.s_heightL = QLabel('Sensor Height')
+        self.spLayout = QGridLayout()
+        self.spLayout.addWidget(self.az_tilt,0,1,1,1)
+        self.spLayout.addWidget(self.az_tiltL,0,0,1,1)
+        self.spLayout.addWidget(self.elev_tilt,1,1,1,1)
+        self.spLayout.addWidget(self.elev_tiltL,1,0,1,1)
+        self.spLayout.addWidget(self.s_height,2,1,1,1)
+        self.spLayout.addWidget(self.s_heightL,2,0,1,1)
+        self.spBox = QGroupBox('Sensor Position')
+        self.spBox.setLayout(self.spLayout)
+        self.s_height.textEdited.connect(self.updateSensorPosition)
+        self.az_tilt.textEdited.connect(self.updateSensorPosition)
+        self.elev_tilt.textEdited.connect(self.updateSensorPosition)
+
+    def updateSensorPosition(self):
+        try:
+            float(self.s_height.text())
+            float(self.az_tilt.text())
+            float(self.elev_tilt.text())
+        except:
+            print("fail to update")
+            return
+        command = "sensorPosition " + self.s_height.text() + " " + self.az_tilt.text() + " " + self.elev_tilt.text() + " \n"
+        self.cThread = sendCommandThread(self.parser,command)
+        self.cThread.start(priority=QThread.HighestPriority-2)
+        self.gz.translate(dx=0,dy=0,dz=self.profile['sensorHeight'])
+        self.profile['sensorHeight'] = float(self.s_height.text())
+        self.gz.translate(dx=0,dy=0,dz=-self.profile['sensorHeight'])
+
     def setUpBoundaryBoxControls(self):
+        #set up all boundary box controls
         self.boundaryBoxes = []
         self.boxTab = QTabWidget()
-        self.boundaryBoxes.append(self.setBoxControlLayout('BOX'))
-        self.boundaryBoxes[0]['boxNum'] = 0
-        self.boxTab.addTab(self.boundaryBoxes[0]['boxCon'], 'BOX')
-
+        for i in range(1):
+            name = 'Box'
+            self.boundaryBoxes.append(self.setBoxControlLayout(name))
+            toAdd = self.boundaryBoxes[i]
+            toAdd['boxNum'] = i
+            #if (i == 0):
+            #    toAdd['checkEnable'].setChecked(True)
+            self.boxTab.addTab(toAdd['boxCon'], name)
     #for live tuning when available
     def changeBoundaryBox(self):
         #send box values
@@ -410,9 +458,14 @@ class Window(QDialog):
         yL = mRange
         yC = yL/2
         self.gz.resetTransform()
-        self.gz.setSize(x=mRange*2, y=mRange)
-        #self.gz.translate(0,0,0)
-        self.gz.translate(dx=xC, dy=yC, dz=-2)
+        if (self.orientationSelection.currentText() == 'Overhead Mount'):
+            #self.gz.setSize(x=mRange*2, y=mRange*2)
+            self.gz.setSize(x=8, y=8)
+            self.gz.translate(dx=xC, dy=0, dz=-2)
+        else:
+            self.gz.setSize(x=mRange*2, y=mRange)
+            #self.gz.translate(0,0,0)
+            self.gz.translate(dx=xC, dy=yC, dz=-2)
 
     def drawBoundaryBox3d(self, index):
         #print(index)
@@ -421,8 +474,12 @@ class Window(QDialog):
         xr = float(bList[1].text())
         yl = float(bList[2].text())
         yr = float(bList[3].text())
-        zl = float(bList[4].text())
-        zr = float(bList[5].text())
+        if (self.orientationSelection.currentText() == 'Side Mount'):
+            zl = float(bList[4].text())
+            zr = float(bList[5].text())
+        elif (self.orientationSelection.currentText() == 'Overhead Mount'):
+            zl = float(bList[4].text())-self.profile['sensorHeight']
+            zr = float(bList[5].text())-self.profile['sensorHeight']
         #print(xl,yl,zl,xr,yr,zr)
         self.bbox = [xl, xr, yl, yr, zl, zr]
         boxLines = getBoxLines(xl,yl,zl,xr,yr,zr)
@@ -439,6 +496,30 @@ class Window(QDialog):
         self.gw = pg.GradientWidget(orientation='right')
         self.gw.restoreState(self.gradientMode)
 
+    def swapOrientations(self):
+        print('orientation changed')
+        print(self.orientationSelection.currentText())
+        dsh = self.profile['sensorHeight']
+        if (self.orientationSelection.currentText() == 'Overhead Mount'):
+            self.yzFlip = 1
+            self.evmBox.rotate(90,1,0,0)
+            self.gz.resetTransform()
+            #self.gz.setSize(x=self.profile['maxRange']*2, y=self.profile['maxRange']*2)
+            self.gz.setSize(x=8, y=8)
+            #self.gz.translate(0,0,0)
+            self.gz.translate(dx=0, dy=0, dz=-self.profile['sensorHeight'])
+            self.changeBoundaryBox()
+            self.zRange = [-1*self.profile['sensorHeight'], 0]
+        elif (self.orientationSelection.currentText() == 'Side Mount'):
+            self.yzFlip = 0
+            self.evmBox.rotate(-90,1,0,0)
+            self.gz.resetTransform()
+            self.gz.setSize(x=self.profile['maxRange']*2, y=self.profile['maxRange'])
+            #self.gz.translate(0,0,0)
+            self.gz.translate(dx=0, dy=self.profile['maxRange']/2, dz=-self.profile['sensorHeight'])
+            self.changeBoundaryBox()
+            self.zRange = [-3, 3]
+
     def plot3DQTGraph(self):
         sphereDebug = 0
         self.pcplot = gl.GLViewWidget()
@@ -449,8 +530,8 @@ class Window(QDialog):
             colors = np.zeros((42,4))
             for c in range(0,7):
                 colors[c*6:c*6+6,:] = pg.glColor(colorArray[c%5])
-            #sphereTrigs = getSphereMesh()
-            #self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=True,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
+            sphereTrigs = getSphereMesh()
+            self.sphere =gl.GLMeshItem(vertexes=sphereTrigs,smooth=False,drawEdges=True,edgeColor=pg.glColor('w'),drawFaces=False)
             self.pcplot.addItem(self.sphere)
         # create the background grids
         self.gz = gl.GLGridItem()
@@ -511,7 +592,7 @@ class Window(QDialog):
         targets = parsedData[1]
         indexes = parsedData[2]
         numPoints = parsedData[3]
-        numTargets = parsedData[4]
+        self.numTargets = parsedData[4]
         self.frameNum = parsedData[5]
         fail = parsedData[6]
         classifierOutput = parsedData[7]
@@ -520,17 +601,17 @@ class Window(QDialog):
         if (fail != 1):
             #left side
             pointstr = 'Points: '+str(numPoints)
-            targetstr = 'Targets: '+str(numTargets)
+            targetstr = 'Targets: '+str(self.numTargets)
             self.numPointsDisplay.setText(pointstr)
             self.numTargetsDisplay.setText(targetstr)
             #right side fall detection
-            peopleStr = 'Number of Detected People: '+str(numTargets)
-            if (numTargets == 0):
+            peopleStr = 'Number of Detected People: '+str(self.numTargets)
+            if (self.numTargets == 0):
                 fdestr = 'Fall Detection Disabled - No People Detected'
-            elif (numTargets == 1):
+            elif (self.numTargets == 1):
                 fdestr = 'Fall Detection Enabled'
                 fallDetEn = 1
-            elif (numTargets > 1):
+            elif (self.numTargets > 1):
                 fdestr = 'Fall Detected Disabled - Too Many People'
             #self.numDetPeople.setText(peopleStr)
             #self.fallDetEnabled.setText(fdestr)
@@ -545,6 +626,19 @@ class Window(QDialog):
             pointCloud[2,:] = -1*pointCloud[2,:]
             targets[[2,3]] = targets[[3,2]]
             targets[3,:] = -1*targets[3,:]
+
+        #remove static points
+        if (self.configType.currentText() == '3D People Counting' or self.configType.currentText() == 'Capon3DAOP' or self.configType.currentText() == 'Sense and Detect HVAC Control'):
+            if (not self.staticclutter.isChecked()):
+                statics = np.where(pointCloud[3,:] == 0)
+                try:
+                    firstZ = statics[0][0]
+                    numPoints = firstZ
+                    pointCloud = pointCloud[:,:firstZ]
+                    indexes = indexes[:,:self.previousFirstZ]
+                    self.previousFirstZ = firstZ
+                except:
+                    firstZ = -1
         #point cloud persistence
         fNum = self.frameNum%10
         if (numPoints):
@@ -552,21 +646,24 @@ class Window(QDialog):
             self.previousCloud[5,:len(indexes),fNum] = indexes
         self.previousPointCount[fNum]=numPoints
         #plotting 3D - get correct point cloud (persistent points and synchronize the frame)
-        totalPoints = 0
-        persistentFrames = int(self.persistentFramesInput.currentText())
-        #allocate new array for all the points
-        for i in range(1,persistentFrames+1):
-            totalPoints += self.previousPointCount[fNum-i]
-        pointIn = np.zeros((5,int(totalPoints)))
-        indicesIn = np.ones((1, int(totalPoints)))*255
-        totalPoints = 0
-        #fill array
-        for i in range(1,persistentFrames+1):
-            prevCount = int(self.previousPointCount[fNum-i])
-            pointIn[:,totalPoints:totalPoints+prevCount] = self.previousCloud[:5,:prevCount,fNum-i]
-            if (numTargets > 0):
-                indicesIn[0,totalPoints:totalPoints+prevCount] = self.previousCloud[5,:prevCount,fNum-i]
-            totalPoints+=prevCount
+        if (self.configType.currentText() == 'SDK3xPeopleCount'):
+            pointIn = pointCloud
+        else:
+            totalPoints = 0
+            persistentFrames = int(self.persistentFramesInput.currentText())
+            #allocate new array for all the points
+            for i in range(1,persistentFrames+1):
+                totalPoints += self.previousPointCount[fNum-i]
+            pointIn = np.zeros((5,int(totalPoints)))
+            indicesIn = np.ones((1, int(totalPoints)))*255
+            totalPoints = 0
+            #fill array
+            for i in range(1,persistentFrames+1):
+                prevCount = int(self.previousPointCount[fNum-i])
+                pointIn[:,totalPoints:totalPoints+prevCount] = self.previousCloud[:5,:prevCount,fNum-i]
+                if (self.numTargets > 0):
+                    indicesIn[0,totalPoints:totalPoints+prevCount] = self.previousCloud[5,:prevCount,fNum-i]
+                totalPoints+=prevCount
         if (self.graphFin):
             self.plotstart = int(round(time.time()*1000))
             self.graphFin = 0
@@ -575,13 +672,13 @@ class Window(QDialog):
                     indicesIn = indicesIn[0,:]
                 except:
                     indicesIn = []
-                self.get_thread = updateQTTargetThread3D(pointIn, targets, indicesIn, self.scatter, self.pcplot, numTargets, self.ellipsoids, self.coordStr, classifierOutput, self.zRange, self.gw, self.plotByIndex.isChecked(), self.plotTracks.isChecked(), self.bbox,self.boundaryBoxes[0]['checkEnable'].isChecked())
+                self.get_thread = updateQTTargetThread3D(pointIn, targets, indicesIn, self.scatter, self.pcplot, self.numTargets, self.ellipsoids, self.coordStr, classifierOutput, self.zRange, self.gw, self.plotByIndex.isChecked(), self.plotTracks.isChecked(), self.bbox,self.boundaryBoxes[0]['checkEnable'].isChecked())
                 self.get_thread.done.connect(self.graphDone)
                 self.get_thread.start(priority=QThread.HighestPriority-1)
             else:
                 npc = pointIn[0:2,:]
                 print (np.shape(npc))
-                self.legacyThread = update2DQTGraphThread(npc, targets, numTargets, indexes, numPoints, self.trailData, self.activeTrail, self.trails, self.scatter2D, self.gatingScatter)
+                self.legacyThread = update2DQTGraphThread(npc, targets, self.numTargets, indexes, numPoints, self.trailData, self.activeTrail, self.trails, self.scatter2D, self.gatingScatter)
                 self.legacyThread.done.connect(self.graphDone)
                 self.legacyThread.start(priority=QThread.HighestPriority-1)
         else:
@@ -589,11 +686,11 @@ class Window(QDialog):
         #pointIn = self.previousCloud[:,:int(self.previousPointCount[fNum-1]),fNum-1]
 
         #state tracking
-        if (numTargets > 0):
+        if (self.numTargets > 0):
             self.lastFrameHadTargets = True
         else:
             self.lastFrameHadTargets = False
-        if (numTargets):
+        if (self.numTargets):
             self.lastTID = targets[0,:]
         else:
             self.lastTID = []
@@ -614,45 +711,58 @@ class Window(QDialog):
         self.frameNumDisplay.setText(fnstr)
         self.plotTimeDisplay.setText(pltstr)
 
-        if(self.trafficVal==0):
-            self.lbl.setPixmap(self.pixmapGroup[0])
-        elif(self.trafficVal==1):
-            self.lbl.setPixmap(self.pixmapGroup[1])
+        if(self.numTargets>0):
+            self.trafficVal=self.parser.dangerNum
+            if(self.trafficVal==0):
+                self.lbl.setPixmap(self.pixmapGroup[0])
+            elif(self.trafficVal==1):
+                self.lbl.setPixmap(self.pixmapGroup[1])
+            else:
+                self.lbl.setPixmap(self.pixmapGroup[2])
         else:
-            self.lbl.setPixmap(self.pixmapGroup[2])
-        self.trafficVal+=1
-        if(self.trafficVal==3):
-            self.trafficVal=0
+            self.lbl.setPixmap(self.pixmapGroup[3])
 
+    def resetFallText(self):
+        self.fallAlert.setText('Standing')
+        self.fallPic.setPixmap(self.standingPicture)
+        self.fallResetTimerOn = 0
+
+    def updateFallThresh(self):
+        try:
+            newThresh = float(self.fallThreshInput.text())
+            self.fallThresh = newThresh
+            self.fallThreshMarker.setPos(self.fallThresh)
+        except:
+            print('No numberical threshold')
 
     def connectCom(self):
         #get parser
-        self.parser = uartParserSDK(type='(Legacy) 2D People Counting')
+        self.parser = uartParserSDK(type=self.configType.currentText())
         self.parser.frameTime = self.frameTime
-        print('Parser type: (Legacy) 2D People Counting',)
+        print('Parser type: ',self.configType.currentText())
         #init threads and timers
         self.uart_thread = parseUartThread(self.parser)
-        self.uart_thread.fin.connect(self.parseData)
+        if (self.configType.currentText() != 'Replay'):
+            self.uart_thread.fin.connect(self.parseData)
         self.uart_thread.fin.connect(self.updateGraph)
         self.parseTimer = QTimer()
         self.parseTimer.setSingleShot(False)
         self.parseTimer.timeout.connect(self.parseData)        
         try:
-            #uart = "COM"+ self.uartCom.text()       #deb_gp
-            #data = "COM"+ self.dataCom.text()       #deb_gp
-            uart = "COM"+ str(10)
-            data = "COM"+ str(11)
+            uart = "COM"+ str(10)       #deb_gp
+            data = "COM"+ str(11)       #deb_gp
 #TODO: find the serial ports automatically.
             self.parser.connectComPorts(uart, data)
             self.connectStatus.setText('Connected')     #deb_gp
-            self.connectButton.setEnabled(False)
-            #self.connectButton.setText('Disconnect')    #deb_gp
-            
+            self.connectButton.setText('Disconnect')    #deb_gp
 #TODO: create the disconnect button action
         except Exception as e:
             print (e)
             self.connectStatus.setText('Unable to Connect')
-        
+        if (self.configType.currentText() == "Replay"):
+            self.connectStatus.setText('Replay')
+        if (self.configType.currentText() == "Long Range People Detection"):
+            self.frameTime = 400
 #
 # Select and parse the configuration file
 # TODO select the cfgfile automatically based on the profile.
@@ -663,7 +773,7 @@ class Window(QDialog):
         except Exception as e:
             print(e)
             print('No cfg file selected!')
-
+    
     def parseCfg(self, fname):
         cfg_file = open(fname, 'r')
         self.cfg = cfg_file.readlines()
@@ -687,8 +797,12 @@ class Window(QDialog):
                     self.profile['rightX'] = float(args[2])
                     self.profile['nearY'] = float(args[3])
                     self.profile['farY'] = float(args[4])
-                    self.profile['bottomZ'] = float(-3)
-                    self.profile['topZ'] = float(3)
+                    if (self.configType.currentText() == '3D People Counting'):
+                        self.profile['bottomZ'] = float(args[5])
+                        self.profile['topZ'] = float(args[6])
+                    else:
+                        self.profile['bottomZ'] = float(-3)
+                        self.profile['topZ'] = float(3)
                     self.setBoundaryTextVals(self.profile)
                     self.boundaryBoxes[0]['checkEnable'].setChecked(True)
                 elif (args[0] == 'staticBoundaryBox'):
@@ -727,14 +841,15 @@ class Window(QDialog):
         self.configTable.setItem(3,1,QTableWidgetItem(str(maxVelocity)[:5]))
         self.configTable.setItem(4,1,QTableWidgetItem(str(velocityRes)[:5]))
         #update sensor position
-        #self.az_tilt.setText(str(self.profile['az_tilt']))
-        #self.elev_tilt.setText(str(self.profile['elev_tilt']))
-        #self.s_height.setText(str(self.profile['sensorHeight']))
+        self.az_tilt.setText(str(self.profile['az_tilt']))
+        self.elev_tilt.setText(str(self.profile['elev_tilt']))
+        self.s_height.setText(str(self.profile['sensorHeight']))
 
     def sendCfg(self):
         try:
-            self.parser.sendCfg(self.cfg)
-            self.configSent = 1
+            if (self.configType.currentText() != "Replay"):
+                self.parser.sendCfg(self.cfg)
+                self.configSent = 1
             self.parseTimer.start(self.frameTime)
         except Exception as e:
             print(e)
