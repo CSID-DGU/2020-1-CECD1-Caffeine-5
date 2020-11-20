@@ -246,14 +246,12 @@ class uartParserSDK():
 
 
     def ettctoTrafficNum(self, ettc):
-        # 0: CZ(RED) 1: DZ(YELLOW) 2:NZ(GREEN)
+        # 0: CZ(RED) 1:NZ(GREEN)
         #print('ECCT:')
-        if(ettc<=3.0):
+        if(ettc<=4.5):
              self.dangerNum=0
-        elif(ettc>3.0 and ettc<=4.0):
-             self.dangerNum=1
         else:
-            self.dangerNum=2
+            self.dangerNum=1
         
         #print(self.dangerNum)            
 
